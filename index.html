@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Park AR</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body style="margin: 0; overflow: hidden">
+    <a-scene embedded arjs="trackingMethod: best; sourceType: webcam;">
+      <!-- Assets -->
+      <a-assets>
+        <a-asset-item
+          id="building_04-obj"
+          src="assets/Cottage_FREE.obj"
+        ></a-asset-item>
+        <a-asset-item
+          id="building_04-mtl"
+          src="assets/Cottage_FREE.mtl"
+        ></a-asset-item>
+        <img id="concrete-texture" src="textures/concrete.png" />
+      </a-assets>
+
+      <!-- Marker -->
+      <a-marker preset="hiro">
+        <!-- Floor -->
+        <a-plane
+          position="0 -0.1 0"
+          rotation="-90 0 0"
+          width="1.5"
+          height="1.5"
+          material="src: #concrete-texture; repeat: 2 2"
+        ></a-plane>
+        <!-- Tree -->
+        <a-entity
+          obj-model="obj: #building_04-obj; mtl: #building_04-mtl"
+          position="0 0 0"
+          scale="0.1 0.1 0.1"
+        ></a-entity>
+      </a-marker>
+
+      <!-- Camera -->
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
+</html>
