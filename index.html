@@ -4,24 +4,110 @@
     <title>Park AR</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script>
+      // Wait for the scene to load
+      AFRAME.registerComponent("car-sound-handler", {
+        init: function () {
+          // Set up the scene once it's loaded
+          this.el.sceneEl.addEventListener("loaded", () => {
+            // Add event listeners for marker found/lost
+            const marker = document.querySelector("#marker-hiro");
+
+            // Reference to the car entity with sound
+            const carEntity = document.querySelector(".clickable");
+
+            // Handle marker detection
+            marker.addEventListener("markerFound", () => {
+              console.log("Marker found - attempting to play sound");
+
+              // Try to play the sound manually
+              const soundComponent = carEntity.components.sound;
+              if (soundComponent) {
+                setTimeout(() => {
+                  soundComponent.playSound();
+                  console.log("Manually triggered sound playback");
+                }, 1000);
+              }
+            });
+
+            // Add a global click handler to help with mobile audio
+            document.body.addEventListener(
+              "click",
+              function () {
+                console.log("Body clicked - attempting to unlock audio");
+                const soundElements = document.querySelectorAll("[sound]");
+                soundElements.forEach((el) => {
+                  if (el.components.sound) {
+                    el.components.sound.playSound();
+                  }
+                });
+              },
+              { once: true }
+            );
+
+            // Add event listeners for clicks on the car
+            const clickables = document.querySelectorAll(".clickable");
+            clickables.forEach((clickable) => {
+              clickable.addEventListener("click", function (evt) {
+                console.log("Element clicked - playing sound");
+
+                // Get the sound component and play it explicitly
+                const soundComp = this.components.sound;
+                if (soundComp) {
+                  soundComp.playSound();
+                }
+              });
+            });
+          });
+        },
+      });
+    </script>
+    <style>
+      .overlay-button {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        padding: 15px 30px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 18px;
+      }
+    </style>
   </head>
+
   <body style="margin: 0; overflow: hidden">
-    <a-scene embedded arjs="trackingMethod: best; sourceType: webcam;">
+    <a-scene
+      embedded
+      arjs="trackingMethod: best; sourceType: webcam;"
+      car-sound-handler
+    >
       <!-- Assets -->
       <a-assets>
-        <a-asset-item
-          id="building_04-obj"
-          src="assets/Cottage_FREE.obj"
-        ></a-asset-item>
-        <a-asset-item
-          id="building_04-mtl"
-          src="assets/Cottage_FREE.mtl"
-        ></a-asset-item>
+        <a-asset-item id="cottage-glb" src="assets/Cottage.glb"></a-asset-item>
+        <a-asset-item id="car-obj" src="assets/car.obj"></a-asset-item>
         <img id="concrete-texture" src="textures/concrete.png" />
+        <img id="lambo-wheel0" src="lambo/wheel0.tga.png" />
+        <img id="lambo-wheel" src="lambo/wheel.tga.png" />
+        <img id="lambo-lights" src="lambo/lights.tga.png" />
+        <img id="lambo-nodamage" src="lambo/nodamage.tga.png" />
+        <img id="lambo-black" src="lambo/black.tga.png" />
+        <img id="lambo-grille2" src="lambo/grille2.tga.png" />
+        <img id="lambo-tirea0" src="lambo/tirea0.tga.png" />
+        <img id="lambo-undercar" src="lambo/undercar.tga.png" />
+        <img id="lambo-carbonfiber" src="lambo/carbonfiber.tga.png" />
+        <audio
+          id="car-sound"
+          src="sounds/lamborghini-urus-racing-sound-effect-163336.mp3"
+          preload="auto"
+        ></audio>
       </a-assets>
 
       <!-- Marker -->
-      <a-marker preset="hiro">
+      <a-marker preset="hiro" emitevents="true" id="marker-hiro">
         <!-- Floor -->
         <a-plane
           position="0 -0.1 0"
@@ -30,16 +116,48 @@
           height="1.5"
           material="src: #concrete-texture; repeat: 2 2"
         ></a-plane>
-        <!-- Tree -->
+
         <a-entity
-          obj-model="obj: #building_04-obj; mtl: #building_04-mtl"
+          gltf-model="#cottage-glb"
           position="0 0 0"
           scale="0.1 0.1 0.1"
         ></a-entity>
+
+        <!-- Lamborghini Car Model -->
+        <a-entity position="1.5 -0.6 -0.2" rotation="0 0 0" scale="0.2 0.2 0.2">
+          <a-entity
+            obj-model="obj: #car-obj"
+            material="src: #lambo-nodamage"
+            sound="src: #car-sound; autoplay: true; loop: true; volume: 5; poolSize: 3"
+            class="clickable"
+          ></a-entity>
+        </a-entity>
+
+        <!-- Sound Play Button (for mobile) -->
+        <!-- <a-box position="0 0.5 0" scale="0.2 0.2 0.2" color="red" class="clickable"
+        sound="src: #car-sound; on: click; volume: 5"></a-box> -->
       </a-marker>
 
       <!-- Camera -->
-      <a-entity camera></a-entity>
+      <a-entity camera>
+        <a-entity
+          cursor="fuse: false; rayOrigin: mouse;"
+          raycaster="objects: .clickable"
+        ></a-entity>
+      </a-entity>
     </a-scene>
+
+    <button class="overlay-button" id="playSoundBtn">PLAY SOUND</button>
+
+    <script>
+      // Add a physical button that will definitely work for mobile
+      document
+        .getElementById("playSoundBtn")
+        .addEventListener("click", function () {
+          const audio = document.querySelector("#car-sound");
+          audio.play();
+          console.log("Play button clicked - playing audio element directly");
+        });
+    </script>
   </body>
 </html>
